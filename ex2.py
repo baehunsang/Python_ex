@@ -7,6 +7,6 @@ from random import *
 lst = list(range(1, 21)) # 1~20이 들어간 range 객체를 선언 후 타입캐스팅
 shuffle(lst)
 print("-- 당첨자 발표 --")
-print("치킨 당첨자 :"+str(lst[0]))
-print("커피 당첨자 :"+ str(sample(lst, 3)))
+print("치킨 당첨자 : {}".format(str(lst[0])))
+print("커피 당첨자 : {}".format(str(sample(lst, 3))))
 print("-- 축하합니다 --")
