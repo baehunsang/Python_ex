@@ -102,3 +102,12 @@ dic = {3:'유재석', 100: '김태호'} // 3, 100 => key
 |tuple()||
 |set()||
 
+---
+## 한줄 for
+
+```ts
+//Ex)문자열 길이 리스트 재생성
+list = ['Iron man', 'Thor', 'Groot']
+list2 = [len(i) for i in list]
+```
+
