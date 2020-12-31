@@ -110,4 +110,23 @@ dic = {3:'유재석', 100: '김태호'} // 3, 100 => key
 list = ['Iron man', 'Thor', 'Groot']
 list2 = [len(i) for i in list]
 ```
+---
+## 2개 이상의 return
 
+```ts
+def foo():
+    return a, b
+    // 튜플 형식으로 2개 이상의 값 반환
+```
+
+---
+## 가변인자
+```ts
+//Ex
+def foo(*language):
+    return
+foo("C")
+foo("C", "java")
+
+// language 카테고리에 해당되는 값을 가변적으로 삽입 가능
+```
