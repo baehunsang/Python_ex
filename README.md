@@ -26,7 +26,7 @@
 ---
 ## 리스트
 ---
-
+빈 자료구조는   `False`값을 가진다
 * 선언 <br/>`list = [10, 20, 30]`
 ### 함수
 ---
@@ -151,7 +151,7 @@ foo("C", "java")
 ---
 
 ## 파일 입출력
-`print`의 `file`, `open`함수
+`print`의 `file`인자, `open`함수
 
 |||
 |--|--|
@@ -159,12 +159,14 @@ foo("C", "java")
 |readline()|탈출문자를 포함해서 한줄씩 읽고 커서는 줄바꿈|
 |readlines()|모든 라인을 `리스트`로 저장|
 
-### pikle
+### [pikle](https://docs.python.org/ko/3/library/pickle.html)
 
 `import pickle`로 선언
-`.pickle`파일은 `"wb"`, `"rb"`모드로 `open`한다
+`.pickle`파일은 `"wb"`, `"rb"`모드로 `open`한다.
+신뢰할 수 있는 데이터만 피클링(open)해야 한다.
 `dump(변수, 파일)` 변수에 저장된 걸 파일에 저장
 `load(파일)` 파일에 저장된 값을 그대로 불러온다(자료구조, 타입 등이 유지된다.)
+
 
 ### with
 일시적으로 파일을 열고닫고 할 때
@@ -174,6 +176,7 @@ with open("profile.pickle", "rb") as profile_file:
 ```
 
 `with as`문을 탈출하면서 파일이 자동으로 닫힌다. 
+
 
 
 
