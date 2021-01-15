@@ -178,9 +178,67 @@ with open("profile.pickle", "rb") as profile_file:
 `with as`문을 탈출하면서 파일이 자동으로 닫힌다. 
 
 
+---
+## 예외처리
+```ts
+    try: 
+        //원래 코드
+    except Error1:
+        print("Error1!")
+    except Error2:
+        print("Error2!")
+        .
+        .
+        .
+    
+```
+에러가 발생 할 경우 `except`의 코드 실행 후 종료 (에러를 내면서 종료하지 않음)
 
+### 사용자 정의 에러
+```ts
+    class MyError(Exception):
+        pass
+    try:
+        //code
 
+        if num >= 10:
+            raise MyError
+        //Exception 클래스를 상속해서 사용자 정의 에러 클래스를 만든다.
 
+    except MyError:
+        print("myerror")
+```
+```ts
+    class MyError(Exception):
+        def __init__(self, msg):
+            self.msg = msg
+        def __str__(self): // 자바의 toString() 메소드를 생각하면 된다.
+            return self.msg
+
+    try:
+        //code
+        .
+        .
+        raise MyError("My Error")
+        .
+        .
+    except MyError:
+       print(MyError) // __str__메소드가 실행됨
+```
+### finally
+
+```ts
+    try:
+        //code
+    except Error1:
+    except Error2:
+    .
+    .
+    .
+    finally:
+        print("finally section")
+```
+에러가 일어나든 일어나지 않든 처리 후 프로그램이 종료되지 않고 `finally`구문이 실행된다.
 
 
 
