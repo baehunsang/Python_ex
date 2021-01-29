@@ -240,5 +240,106 @@ with open("profile.pickle", "rb") as profile_file:
 ```
 에러가 일어나든 일어나지 않든 처리 후 프로그램이 종료되지 않고 `finally`구문이 실행된다.
 
+---
+# 모듈
 
+`python`은 코드 유지보수를 위해 코드를 모듈 단위로 관리함.
+모듈의 확장자는  `.py`.
+
+```ts
+def price(people):
+    print("{}명 가격은 {}원 입니다".format(people, people * 10000))
+    
+def price_morning(people):
+    print("{}명 가격은 {}원 입니다".format(people, people * 6000))
+
+def price_s(people):
+    print("{}명 가격은 {}원 입니다".format(people, people * 4000))
+
+```
+`ex_module.py`<br>
+```ts
+import ex_module as ex
+
+ex.price(2)
+```
+`사용 예`<br>
+모듈 사용시 `import 모듈명`을 사용해서 호출. 확장자는 쓸 필요 X
+`as`를 사용해서 긴 모듈명 대신 쓸 수도 있음
+이 경우 호출 모듈을 클래스로 보고 그 안의 변수, 함수를 클래스 내부의 요소로 취급함
+
+```ts
+from ex_module import *
+price(2)
+
+//ex.price(2)
+```
+`from 모듈명 import `을 이용해서 모듈명을 쓰지 않을 수도 있음.
+이 경우는 모듈을 클래스로 보지 않고 모듈 내의 모든 내용이 해당 `.py`파일에 선언되어 있다고 봄.<br> `*`은 해당 모듈 내 모든 내용을 선언하는 것, `*`대신에 자신이 원하는 변수, 함수만 선언할 수도 있음.
+
+---
+# 패키지
+모듈을 모아놓은 집합체
+
+동일 디렉토리의 패키지를 `import`를 통해 호출할 수 있다.
+
+```ts
+class ThailandPack:
+    def detail(self):
+        print("[태국 패키지 여행] 방콕, 파타야, 참가비 500,000KRW")
+```
+`Travel`파일 내의 `thailand.py`<br>
+
+```ts
+import Travel.thailand as trip
+trip_to = trip.ThailandPack()
+trip_to.detail()
+```
+`expack.py`
+
+---
+## __all__
+`__init__.py`는 `from import *`로 패키지를 호출 할 때 어느 모듈을 공개할지 결정한다. 
+
+```ts
+__all__ = ["thailand"] 
+```
+`Travel` 내에서 `thailand`모듈만 공개하고 싶을 때 
+
+---
+## 모듈 테스트
+
+```ts
+if __name__ == "__main__":
+    print("모듈이 직접 실행됨")
+    trip = ThailandPack()
+    trip.detail()
+else:
+    print("외부 호출")
+```
+`if`안의 내용은 모듈을 직접 실행할 때 동작한다. 이를 통해서 모듈 자체적으로 테스트가 가능하다.
+
+## 패키지, 모듈의 위치
+
+```ts
+import inspect
+import random
+print(inspect.getfile(random))
+```
+`random`모듈의 위치를 출력함
+
+## 패키지 설치
+
+```ts
+//pwntools 설치
+$ pip install pwntools
+```
+[pypi](https://pypi.org/project/pwntools/)에서 모듈을 찾아서 설치하면 된다. 
+
+```ts
+$ pip show pwntools // 패키지 내용 파악
+$ pip uninstall pwntools // 패키지 삭제
+$ pip install --upgrade pwntools //업데이트
+```
+---
 
