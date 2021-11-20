@@ -47,7 +47,8 @@ def findMedian(nums1, nums2)-> float:
 		else:
 			left = mid + 1
 
-	
+# test
+
 nums1 = [1, 2]
 nums2 = [3]
 
