@@ -5,6 +5,8 @@ CURRENT_PATH = os.path.dirname(__file__)
 CELL_SIZE = 56
 BUBBLE_WIDTH = 56
 BUBBLE_HEIGHT = 62
+SCREEN_WIDTH = 448
+SCREEN_HEIGHT = 720
 
 class Image:
     def __init__(self):
@@ -17,6 +19,7 @@ class Image:
             pygame.image.load(os.path.join(CURRENT_PATH, "purple.png")).convert_alpha(),
             pygame.image.load(os.path.join(CURRENT_PATH, "black.png")).convert_alpha()
         ]
+        self.pointer_image = pygame.image.load(os.path.join(CURRENT_PATH, "pointer.png"))
 
     def load_background_image(self):
         return pygame.image.load(os.path.join(CURRENT_PATH, "background.png"))
@@ -27,17 +30,29 @@ class Image:
     def get_bubbles(self):
         return self.bubble_images
 
+    def get_pointer(self):
+        return self.pointer_image
+
 
 class Screen:
     def __init__(self) -> None:
-        self.width = 448
-        self.height = 720
+        self.width = SCREEN_WIDTH
+        self.height = SCREEN_HEIGHT
         self.caption = "Bubble_Bubble"
 
     def set_screen(self):
         pygame.display.set_caption (self.caption)
         return pygame.display.set_mode((self.width, self.height))
 
+
+class Pointer(pygame.sprite.Sprite):
+    def __init__(self, image, position):
+        super().__init__()
+        self.image = image
+        self.rect = image.get_rect(center=position)
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 class Bubble(pygame.sprite.Sprite):
     def __init__(self, image, color, position):
@@ -117,17 +132,18 @@ class Game:
         self.screen = Screen().set_screen()
         self.images = Image()
         self.map = Map(self.images.get_bubbles())
+        self.pointer = Pointer(self.images.get_pointer(), (SCREEN_WIDTH // 2, 624))
 
     def set_game_loop(self):
         self.map.setup()
         self.map.add_bubble_group()
         self.screen.blit(self.images.get_background(), (0, 0))
-        
         while self.running:
 
             self.set_frame_rate()
             self.map.get_bubble_group().draw(self.screen)
             self.manage_events()
+            self.pointer.draw(self.screen)
             pygame.display.update()
         
     def set_frame_rate(self):
