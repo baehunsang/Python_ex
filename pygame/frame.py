@@ -261,7 +261,7 @@ class Game:
             self.prepare_current_bubble()
         if not self.next_bubble:
             self.prepare_next_bubble()
-            
+
     def draw_screen(self):
         self.bubbles.add_bubble_into_group(self.map.get_map())
         self.screen.blit(self.images.get_background(), (0, 0))
@@ -273,9 +273,9 @@ class Game:
 
     def draw_current_bubble(self):
         if self.current_bubble:
-                if self.fire:
-                    self.current_bubble.move(self.df)
-                self.current_bubble.draw(self.screen)
+            if self.fire:
+                self.current_bubble.move(self.df)
+            self.current_bubble.draw(self.screen)
 
     def draw_next_bubble(self):
         self.next_bubble.draw(self.screen)
@@ -340,7 +340,6 @@ class Game:
         elif color == "P":
             return PURPLE
 
-    
 
 
 
