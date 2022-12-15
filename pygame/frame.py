@@ -80,8 +80,7 @@ class Bubble(pygame.sprite.Sprite):
 class Map:
     def __init__(self, bubble_images) -> None:
         self.map = []
-        self.bubble_images = bubble_images
-        self.bubble_group = pygame.sprite.Group()
+        self.bubble_group = Bubble_Group(bubble_images)
 
     def setup(self):
         self.map = [
@@ -100,19 +99,15 @@ class Map:
             list("........")
         ]
 
-    def add_bubble_group(self):
-        for row_idx, row in enumerate(self.map):
-            for col_idx, sell in enumerate(row):
-                if sell in [".", "/"]:
-                    continue
+    def get_map(self):
+        return self.map
 
-                position = self.get_bubble_position(row_idx, col_idx)
-                image = self.get_bubble_image(sell)
-                self.bubble_group.add(Bubble(image, sell, position))
 
-    def get_bubble_group(self):
-        return self.bubble_group
-
+class Bubble_Group:
+    def __init__(self, bubble_images) -> None:
+        self.bubble_images = bubble_images
+        self.bubble_group = pygame.sprite.Group()
+    
     def get_bubble_position(self, row_idx, col_idx):
         x_position = col_idx * CELL_SIZE + (BUBBLE_WIDTH // 2)
         y_position = row_idx * CELL_SIZE + (BUBBLE_HEIGHT // 2)
@@ -141,6 +136,23 @@ class Map:
         elif sell == "B":
             return self.bubble_images[-1]
 
+    def add_bubble_into_group(self, map):
+        for row_idx, row in enumerate(map):
+            for col_idx, sell in enumerate(row):
+                if sell in [".", "/"]:
+                    continue
+
+                self.add_bubble(row_idx, col_idx, sell)
+
+    def add_bubble(self, row_idx, col_idx, sell):
+        position = self.get_bubble_position(row_idx, col_idx)
+        image = self.get_bubble_image(sell)
+        self.bubble_group.add(Bubble(image, sell, position))
+
+    def get_bubble_group(self):
+        return self.bubble_group
+
+
 class Game:
     def __init__(self):
         self.clock = pygame.time.Clock()
@@ -148,18 +160,20 @@ class Game:
         self.screen = Screen().set_screen()
         self.images = Image()
         self.map = Map(self.images.get_bubbles())
+        self.bubbles = Bubble_Group(self.images.get_bubbles())
         self.pointer = Pointer(self.images.get_pointer())
         self.total_angle = 0
+
     def set_game_loop(self):
         self.map.setup()
         while self.running:
             self.set_frame_rate()
-            self.map.add_bubble_group()
+            self.bubbles.add_bubble_into_group(self.map.get_map())
             self.screen.blit(self.images.get_background(), (0, 0))
             
             self.manage_events()
             self.pointer.rotate(self.total_angle)
-            self.map.get_bubble_group().draw(self.screen)
+            self.bubbles.get_bubble_group().draw(self.screen)
             self.pointer.draw(self.screen)
             pygame.display.update()
         
