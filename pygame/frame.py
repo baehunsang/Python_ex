@@ -7,7 +7,7 @@ BUBBLE_WIDTH = 56
 BUBBLE_HEIGHT = 62
 SCREEN_WIDTH = 448
 SCREEN_HEIGHT = 720
-ANGLE_SPEED = 1.5
+ANGLE_SPEED = 2.0
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
@@ -54,22 +54,26 @@ class Pointer(pygame.sprite.Sprite):
         self.image = image
         self.rect = image.get_rect(center=POINTER_POSITION)
         self.angle = 90
-        self.difference_of_angle = 0
+        self.left_difference_of_angle = 0
+        self.right_difference_of_angle = 0
 
-    def increase_difference_of_angle(self):
-        self.difference_of_angle += ANGLE_SPEED
+    def move_left_direction(self):
+        self.left_difference_of_angle += ANGLE_SPEED
 
-    def decrease_difference_of_angle(self):
-        self.difference_of_angle -= ANGLE_SPEED
+    def move_right_direction(self):
+        self.right_difference_of_angle -= ANGLE_SPEED
 
-    def stop_change_angle(self):
-        self.difference_of_angle = 0
+    def stop_left_direction(self):
+        self.left_difference_of_angle = 0
+
+    def stop_right_direction(self):
+        self.right_difference_of_angle = 0
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
     def rotate(self):
-        self.angle += self.difference_of_angle
+        self.angle = self.angle + self.right_difference_of_angle + self.left_difference_of_angle
         if self.angle <= MAX_RIGHT_ANGLE:
             self.angle = MAX_RIGHT_ANGLE 
 
@@ -197,14 +201,17 @@ class Game:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.pointer.increase_difference_of_angle()
+                    self.pointer.move_left_direction()
 
                 elif event.key == pygame.K_RIGHT:
-                    self.pointer.decrease_difference_of_angle()
+                    self.pointer.move_right_direction()
                 
             elif event.type ==pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    self.pointer.stop_change_angle()
+                if event.key == pygame.K_LEFT:
+                    self.pointer.stop_left_direction()
+
+                if event.key == pygame.K_RIGHT:
+                    self.pointer.stop_right_direction()
 
 
 
