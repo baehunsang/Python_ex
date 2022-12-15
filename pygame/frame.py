@@ -9,11 +9,12 @@ BUBBLE_WIDTH = 56
 BUBBLE_HEIGHT = 62
 SCREEN_WIDTH = 448
 SCREEN_HEIGHT = 720
-ANGLE_SPEED = 2.0
+ANGLE_SPEED = 0.1
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
-BUBBLE_SPEED = 18
+BUBBLE_SPEED = 0.5
+FPS = 30
 RED = 0
 YELLOW = 1
 BLUE = 2
@@ -91,8 +92,8 @@ class Pointer(Game_Object):
     def stop_right_direction(self):
         self.right_difference_of_angle = 0
 
-    def rotate(self):
-        self.angle = self.angle + self.right_difference_of_angle + self.left_difference_of_angle
+    def rotate(self, df):
+        self.angle = self.angle + (self.right_difference_of_angle + self.left_difference_of_angle) * df
         if self.angle <= MAX_RIGHT_ANGLE:
             self.angle = MAX_RIGHT_ANGLE 
 
@@ -121,12 +122,12 @@ class Bubble(Game_Object):
         self.angle = angle
         self.rad_angle = math.radians(self.angle)
         
-    def move(self):
+    def move(self, df):
         difference_x = BUBBLE_SPEED * math.cos(self.rad_angle)
         difference_y = -BUBBLE_SPEED * math.sin(self.rad_angle)
 
-        self.rect.x += difference_x
-        self.rect.y += difference_y
+        self.rect.x += difference_x * df
+        self.rect.y += difference_y * df
 
         if self.rect.left < 0 or self.rect.right > SCREEN_WIDTH: 
             self.set_angle(180 - self.angle)
@@ -236,7 +237,7 @@ class Game:
     def set_game_loop(self):
         self.map.setup()
         while self.running:
-            self.set_frame_rate()
+            self.df = self.set_frame_rate()
 
             self.revolve_bubble()
 
@@ -253,8 +254,8 @@ class Game:
             pygame.display.update()
         
     def set_frame_rate(self):
-        frame_rate = 60
-        self.clock.tick(frame_rate)
+        frame_rate = FPS
+        return self.clock.tick(frame_rate)
 
     def revolve_bubble(self):
         if not self.current_bubble:
@@ -266,13 +267,13 @@ class Game:
         self.bubbles.get_bubble_group().draw(self.screen)
 
     def draw_pointer(self):
-        self.pointer.rotate()
+        self.pointer.rotate(self.df)
         self.pointer.draw(self.screen)
 
     def draw_current_bubble(self):
         if self.current_bubble:
                 if self.fire:
-                    self.current_bubble.move()
+                    self.current_bubble.move(self.df)
                 self.current_bubble.draw(self.screen)
 
     def delete_current_bubble(self):
