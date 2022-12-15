@@ -9,6 +9,9 @@ BUBBLE_WIDTH = 56
 BUBBLE_HEIGHT = 62
 SCREEN_WIDTH = 448
 SCREEN_HEIGHT = 720
+MAP_ROW = 11
+MAP_COL = 8
+
 ANGLE_SPEED = 0.1
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
@@ -16,6 +19,7 @@ POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
 NEXT_BUBBLE_POSITION = (26, 720 - 31)
 BUBBLE_SPEED = 0.5
 FPS = 30
+
 RED = 0
 YELLOW = 1
 BLUE = 2
@@ -168,6 +172,9 @@ class Map:
                 if col not in self.colors and col not in [".", "/"]:
                     self.colors.append(col)
 
+    def set_map(self, row_idx, col_idx, color):
+        self.map[row_idx][col_idx] = color
+
 
 class Bubble_Group:
     def __init__(self, bubble_images) -> None:
@@ -215,6 +222,9 @@ class Bubble_Group:
         image = self.get_bubble_image(sell)
         self.bubble_group.add(Bubble(image, sell, position))
 
+    def add_current_bubble(self, bubble):
+        self.bubble_group.add(bubble)
+
     def get_bubble_group(self):
         return self.bubble_group
 
@@ -234,14 +244,16 @@ class Game:
 
     def set_game_loop(self):
         self.map.setup()
+        self.bubbles.add_bubble_into_group(self.map.get_map())
         while self.running:
             self.df = self.set_frame_rate()
+            self.manage_events()
 
             self.revolve_bubble()
+            
+            self.collision_manage()
 
             self.draw_screen()
-
-            self.manage_events()
 
             self.draw_pointer()
 
@@ -263,7 +275,6 @@ class Game:
             self.prepare_next_bubble()
 
     def draw_screen(self):
-        self.bubbles.add_bubble_into_group(self.map.get_map())
         self.screen.blit(self.images.get_background(), (0, 0))
         self.bubbles.get_bubble_group().draw(self.screen)
 
@@ -281,11 +292,17 @@ class Game:
         self.next_bubble.draw(self.screen)
 
     def delete_current_bubble(self):
-        if self.current_bubble.is_movement_end():
-                self.current_bubble = self.next_bubble
-                self.current_bubble.set_rect(POINTER_POSITION)
-                self.next_bubble = None
-                self.fire = False
+        if not self.current_bubble:
+            self.current_bubble = self.next_bubble
+            self.current_bubble.set_rect(POINTER_POSITION)
+            self.next_bubble = None
+            self.fire = False
+
+        elif self.current_bubble.is_movement_end():
+            self.current_bubble = self.next_bubble
+            self.current_bubble.set_rect(POINTER_POSITION)
+            self.next_bubble = None
+            self.fire = False
 
     def manage_events(self):
         for event in pygame.event.get():
@@ -340,8 +357,33 @@ class Game:
         elif color == "P":
             return PURPLE
 
+    def collision_manage(self):
+        if self.fire:
+            hit_bubble = pygame.sprite.spritecollideany(self.current_bubble, self.bubbles.get_bubble_group(), pygame.sprite.collide_mask)
+            if hit_bubble:
+                row_idx, col_idx = self.get_map_index(*self.current_bubble.rect.center)
+                self.place_bubble(row_idx, col_idx)
+                
+                
+    def get_map_index(self, x, y):
+        row_idx = y // CELL_SIZE
+        col_idx = x // CELL_SIZE
+        if row_idx % 2 == 1:
+            col_idx = (x - (CELL_SIZE // 2)) // CELL_SIZE
 
+            if col_idx < 0:
+                col_idx = 0
+            if col_idx > MAP_COL - 2:
+                col_idx = MAP_COL - 2
 
+        return row_idx, col_idx
+
+    def place_bubble(self, row_idx, col_idx):
+        self.map.set_map(row_idx, col_idx, self.current_bubble.color)
+        position = self.bubbles.get_bubble_position(row_idx, col_idx)
+        self.current_bubble.set_rect(position)
+        self.bubbles.add_current_bubble(self.current_bubble)
+        self.current_bubble = None
 
 
 
