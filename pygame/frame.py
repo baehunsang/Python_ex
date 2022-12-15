@@ -17,8 +17,8 @@ MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
 NEXT_BUBBLE_POSITION = (26, 720 - 31)
-BUBBLE_SPEED = 0.5
-FPS = 30
+BUBBLE_SPEED = 0.7
+FPS = 60
 
 RED = 0
 YELLOW = 1
@@ -167,6 +167,7 @@ class Map:
         return self.colors
 
     def set_colors(self):
+        self.colors = []
         for row in self.map:
             for col in row:
                 if col not in self.colors and col not in [".", "/"]:
@@ -247,6 +248,7 @@ class Game:
         self.bubbles.add_bubble_into_group(self.map.get_map())
         while self.running:
             self.df = self.set_frame_rate()
+            self.map.set_colors()
             self.manage_events()
 
             self.revolve_bubble()
@@ -358,7 +360,6 @@ class Game:
             if hit_bubble:
                 row_idx, col_idx = self.get_map_index(*self.current_bubble.rect.center)
                 self.place_bubble(row_idx, col_idx)
-                
                 
     def get_map_index(self, x, y):
         row_idx = y // CELL_SIZE
