@@ -13,6 +13,7 @@ ANGLE_SPEED = 0.1
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
+NEXT_BUBBLE_POSITION = (26, 720 - 31)
 BUBBLE_SPEED = 0.5
 FPS = 30
 RED = 0
@@ -70,7 +71,6 @@ class Game_Object(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-
 class Pointer(Game_Object):
     def __init__(self, image):
         super().__init__(image)
@@ -105,9 +105,6 @@ class Pointer(Game_Object):
 
     def get_angle(self):
         return self.angle
-
-
-
 
 class Bubble(Game_Object):
     def __init__(self, image, color:str, position=(0,0)):
@@ -232,6 +229,7 @@ class Game:
         self.bubbles = Bubble_Group(self.images.get_bubbles())
         self.pointer = Pointer(self.images.get_pointer())
         self.current_bubble = None
+        self.next_bubble = None
         self.fire = False
 
     def set_game_loop(self):
@@ -248,6 +246,7 @@ class Game:
             self.draw_pointer()
 
             self.draw_current_bubble()
+            self.draw_next_bubble()
 
             self.delete_current_bubble()
 
@@ -259,8 +258,10 @@ class Game:
 
     def revolve_bubble(self):
         if not self.current_bubble:
-            self.prepare_bubbles()
-
+            self.prepare_current_bubble()
+        if not self.next_bubble:
+            self.prepare_next_bubble()
+            
     def draw_screen(self):
         self.bubbles.add_bubble_into_group(self.map.get_map())
         self.screen.blit(self.images.get_background(), (0, 0))
@@ -276,9 +277,14 @@ class Game:
                     self.current_bubble.move(self.df)
                 self.current_bubble.draw(self.screen)
 
+    def draw_next_bubble(self):
+        self.next_bubble.draw(self.screen)
+
     def delete_current_bubble(self):
         if self.current_bubble.is_movement_end():
-                self.current_bubble = None
+                self.current_bubble = self.next_bubble
+                self.current_bubble.set_rect(POINTER_POSITION)
+                self.next_bubble = None
                 self.fire = False
 
     def manage_events(self):
@@ -308,13 +314,16 @@ class Game:
         self.fire = True
         self.current_bubble.set_angle(self.pointer.get_angle())
 
-    def prepare_bubbles(self):
-        self.current_bubble = self.create_bubble()
+    def prepare_current_bubble(self):
+        self.current_bubble = self.create_bubble(POINTER_POSITION)
 
-    def create_bubble(self):
+    def prepare_next_bubble(self):
+        self.next_bubble = self.create_bubble(NEXT_BUBBLE_POSITION)
+
+    def create_bubble(self, position):
         color = self.get_random_color()
         image = self.images.get_bubble_of(self.number_of(color))
-        return Bubble(image, color, POINTER_POSITION)
+        return Bubble(image, color, position)
     
     def get_random_color(self):
         return random.choice(self.map.get_colors())
