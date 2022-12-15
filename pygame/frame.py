@@ -1,6 +1,7 @@
 import os
 import pygame
 import random
+import math
 
 CURRENT_PATH = os.path.dirname(__file__)
 CELL_SIZE = 56
@@ -12,6 +13,7 @@ ANGLE_SPEED = 2.0
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
+BUBBLE_SPEED = 18
 RED = 0
 YELLOW = 1
 BLUE = 2
@@ -100,6 +102,11 @@ class Pointer(Game_Object):
         self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
         self.rect = self.image.get_rect(center=POINTER_POSITION)
 
+    def get_angle(self):
+        return self.angle
+
+
+
 
 class Bubble(Game_Object):
     def __init__(self, image, color:str, position=(0,0)):
@@ -110,12 +117,26 @@ class Bubble(Game_Object):
     def set_rect(self, position):
         self.rect = self.image.get_rect(center=position)
 
-
+    def set_angle(self, angle):
+        self.angle = angle
+        self.rad_angle = math.radians(self.angle)
         
+    def move(self):
+        difference_x = BUBBLE_SPEED * math.cos(self.rad_angle)
+        difference_y = -BUBBLE_SPEED * math.sin(self.rad_angle)
+
+        self.rect.x += difference_x
+        self.rect.y += difference_y
+
+        if self.rect.left < 0 or self.rect.right > SCREEN_WIDTH: 
+            self.set_angle(180 - self.angle)
+
+    def is_movement_end(self):
+        return self.rect.bottom < 0
+
 class Map:
-    def __init__(self, bubble_images) -> None:
+    def __init__(self) -> None:
         self.map = []
-        self.bubble_group = Bubble_Group(bubble_images)
         self.colors = []
 
     def setup(self):
@@ -206,33 +227,58 @@ class Game:
         self.running = True
         self.screen = Screen().set_screen()
         self.images = Image()
-        self.map = Map(self.images.get_bubbles())
+        self.map = Map()
         self.bubbles = Bubble_Group(self.images.get_bubbles())
         self.pointer = Pointer(self.images.get_pointer())
         self.current_bubble = None
+        self.fire = False
 
     def set_game_loop(self):
         self.map.setup()
         while self.running:
             self.set_frame_rate()
 
-            if not self.current_bubble:
-                self.prepare_bubbles()
-            self.current_bubble.set_rect(POINTER_POSITION)
+            self.revolve_bubble()
 
-            self.bubbles.add_bubble_into_group(self.map.get_map())
-            self.screen.blit(self.images.get_background(), (0, 0))
-            
+            self.draw_screen()
+
             self.manage_events()
-            self.pointer.rotate()
-            self.bubbles.get_bubble_group().draw(self.screen)
-            self.pointer.draw(self.screen)
-            self.current_bubble.draw(self.screen)
+
+            self.draw_pointer()
+
+            self.draw_current_bubble()
+
+            self.delete_current_bubble()
+
             pygame.display.update()
         
     def set_frame_rate(self):
         frame_rate = 60
         self.clock.tick(frame_rate)
+
+    def revolve_bubble(self):
+        if not self.current_bubble:
+            self.prepare_bubbles()
+
+    def draw_screen(self):
+        self.bubbles.add_bubble_into_group(self.map.get_map())
+        self.screen.blit(self.images.get_background(), (0, 0))
+        self.bubbles.get_bubble_group().draw(self.screen)
+
+    def draw_pointer(self):
+        self.pointer.rotate()
+        self.pointer.draw(self.screen)
+
+    def draw_current_bubble(self):
+        if self.current_bubble:
+                if self.fire:
+                    self.current_bubble.move()
+                self.current_bubble.draw(self.screen)
+
+    def delete_current_bubble(self):
+        if self.current_bubble.is_movement_end():
+                self.current_bubble = None
+                self.fire = False
 
     def manage_events(self):
         for event in pygame.event.get():
@@ -245,6 +291,10 @@ class Game:
 
                 elif event.key == pygame.K_RIGHT:
                     self.pointer.move_right_direction()
+
+                elif event.key == pygame.K_SPACE:
+                    if self.current_bubble and not self.fire:
+                        self.fire_bubble()
                 
             elif event.type ==pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
@@ -253,13 +303,17 @@ class Game:
                 if event.key == pygame.K_RIGHT:
                     self.pointer.stop_right_direction()
 
+    def fire_bubble(self):
+        self.fire = True
+        self.current_bubble.set_angle(self.pointer.get_angle())
+
     def prepare_bubbles(self):
         self.current_bubble = self.create_bubble()
 
     def create_bubble(self):
         color = self.get_random_color()
         image = self.images.get_bubble_of(self.number_of(color))
-        return Bubble(image, color)
+        return Bubble(image, color, POINTER_POSITION)
     
     def get_random_color(self):
         return random.choice(self.map.get_colors())
@@ -271,11 +325,12 @@ class Game:
             return YELLOW
         elif color == "B":
             return BLUE
+        elif color == "G":
+            return GREEN
         elif color == "P":
             return PURPLE
 
-
-
+    
 
 
 
