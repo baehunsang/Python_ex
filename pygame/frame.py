@@ -260,7 +260,8 @@ class Game:
             self.draw_current_bubble()
             self.draw_next_bubble()
 
-            self.delete_current_bubble()
+            if self.current_bubble.is_movement_end():
+                self.delete_current_bubble()
 
             pygame.display.update()
         
@@ -289,19 +290,13 @@ class Game:
             self.current_bubble.draw(self.screen)
 
     def draw_next_bubble(self):
-        self.next_bubble.draw(self.screen)
+        if self.next_bubble:
+            self.next_bubble.draw(self.screen)
 
     def delete_current_bubble(self):
-        if not self.current_bubble:
             self.current_bubble = self.next_bubble
             self.current_bubble.set_rect(POINTER_POSITION)
-            self.next_bubble = None
-            self.fire = False
-
-        elif self.current_bubble.is_movement_end():
-            self.current_bubble = self.next_bubble
-            self.current_bubble.set_rect(POINTER_POSITION)
-            self.next_bubble = None
+            self.next_bubble = self.prepare_next_bubble()
             self.fire = False
 
     def manage_events(self):
@@ -383,8 +378,7 @@ class Game:
         position = self.bubbles.get_bubble_position(row_idx, col_idx)
         self.current_bubble.set_rect(position)
         self.bubbles.add_current_bubble(self.current_bubble)
-        self.current_bubble = None
-
+        self.delete_current_bubble()
 
 
 
