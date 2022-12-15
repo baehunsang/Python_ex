@@ -1,5 +1,6 @@
 import os
 import pygame
+import random
 
 CURRENT_PATH = os.path.dirname(__file__)
 CELL_SIZE = 56
@@ -11,6 +12,13 @@ ANGLE_SPEED = 2.0
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
 POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
+RED = 0
+YELLOW = 1
+BLUE = 2
+GREEN = 3
+PURPLE = 4
+BLACK = -1
+
 
 class Image:
     def __init__(self):
@@ -31,6 +39,9 @@ class Image:
     def get_background(self):
         return self.background
 
+    def get_bubble_of(self, color):
+        return self.bubble_images[color]
+    
     def get_bubbles(self):
         return self.bubble_images
 
@@ -47,9 +58,19 @@ class Screen:
         pygame.display.set_caption (self.caption)
         return pygame.display.set_mode((self.width, self.height))
 
-class Pointer(pygame.sprite.Sprite):
-    def __init__(self, image):
+class Game_Object(pygame.sprite.Sprite):
+    def __init__(self, image) -> None:
         super().__init__()
+        self.image = image
+        self.rect = None
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Pointer(Game_Object):
+    def __init__(self, image):
+        super().__init__(image)
         self.original_image = image
         self.image = image
         self.rect = image.get_rect(center=POINTER_POSITION)
@@ -68,9 +89,6 @@ class Pointer(pygame.sprite.Sprite):
 
     def stop_right_direction(self):
         self.right_difference_of_angle = 0
-    
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
 
     def rotate(self):
         self.angle = self.angle + self.right_difference_of_angle + self.left_difference_of_angle
@@ -84,17 +102,23 @@ class Pointer(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=POINTER_POSITION)
 
 
-class Bubble(pygame.sprite.Sprite):
-    def __init__(self, image, color, position):
-        super().__init__()
+class Bubble(Game_Object):
+    def __init__(self, image, color:str, position=(0,0)):
+        super().__init__(image)
         self.image = image
         self.color = color
         self.rect = image.get_rect(center=position)
+
+    def set_rect(self, position):
+        self.rect = self.image.get_rect(center=position)
+
+
         
 class Map:
     def __init__(self, bubble_images) -> None:
         self.map = []
         self.bubble_group = Bubble_Group(bubble_images)
+        self.colors = []
 
     def setup(self):
         self.map = [
@@ -112,9 +136,20 @@ class Map:
             list("......./"),
             list("........")
         ]
+        
+        self.set_colors()
 
     def get_map(self):
         return self.map
+
+    def get_colors(self):
+        return self.colors
+
+    def set_colors(self):
+        for row in self.map:
+            for col in row:
+                if col not in self.colors and col not in [".", "/"]:
+                    self.colors.append(col)
 
 
 class Bubble_Group:
@@ -176,11 +211,17 @@ class Game:
         self.map = Map(self.images.get_bubbles())
         self.bubbles = Bubble_Group(self.images.get_bubbles())
         self.pointer = Pointer(self.images.get_pointer())
+        self.current_bubble = None
 
     def set_game_loop(self):
         self.map.setup()
         while self.running:
             self.set_frame_rate()
+
+            if not self.current_bubble:
+                self.prepare_bubbles()
+            self.current_bubble.set_rect(POINTER_POSITION)
+
             self.bubbles.add_bubble_into_group(self.map.get_map())
             self.screen.blit(self.images.get_background(), (0, 0))
             
@@ -188,6 +229,7 @@ class Game:
             self.pointer.rotate()
             self.bubbles.get_bubble_group().draw(self.screen)
             self.pointer.draw(self.screen)
+            self.current_bubble.draw(self.screen)
             pygame.display.update()
         
     def set_frame_rate(self):
@@ -212,6 +254,29 @@ class Game:
 
                 if event.key == pygame.K_RIGHT:
                     self.pointer.stop_right_direction()
+
+    def prepare_bubbles(self):
+        self.current_bubble = self.create_bubble()
+
+    def create_bubble(self):
+        color = self.get_random_color()
+        image = self.images.get_bubble_of(self.number_of(color))
+        return Bubble(image, color)
+    
+    def get_random_color(self):
+        return random.choice(self.map.get_colors())
+
+    def number_of(self, color):
+        if color == "R":
+            return RED
+        elif color == "Y":
+            return YELLOW
+        elif color == "B":
+            return BLUE
+        elif color == "P":
+            return PURPLE
+
+
 
 
 
