@@ -72,7 +72,6 @@ class Pointer(Game_Object):
     def __init__(self, image):
         super().__init__(image)
         self.original_image = image
-        self.image = image
         self.rect = image.get_rect(center=POINTER_POSITION)
         self.angle = 90
         self.left_difference_of_angle = 0
@@ -105,7 +104,6 @@ class Pointer(Game_Object):
 class Bubble(Game_Object):
     def __init__(self, image, color:str, position=(0,0)):
         super().__init__(image)
-        self.image = image
         self.color = color
         self.rect = image.get_rect(center=position)
 
