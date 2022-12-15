@@ -54,12 +54,22 @@ class Pointer(pygame.sprite.Sprite):
         self.image = image
         self.rect = image.get_rect(center=POINTER_POSITION)
         self.angle = 90
+        self.difference_of_angle = 0
 
+    def increase_difference_of_angle(self):
+        self.difference_of_angle += ANGLE_SPEED
+
+    def decrease_difference_of_angle(self):
+        self.difference_of_angle -= ANGLE_SPEED
+
+    def stop_change_angle(self):
+        self.difference_of_angle = 0
+    
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-    def rotate(self, total_angle):
-        self.angle += total_angle
+    def rotate(self):
+        self.angle += self.difference_of_angle
         if self.angle <= MAX_RIGHT_ANGLE:
             self.angle = MAX_RIGHT_ANGLE 
 
@@ -162,7 +172,6 @@ class Game:
         self.map = Map(self.images.get_bubbles())
         self.bubbles = Bubble_Group(self.images.get_bubbles())
         self.pointer = Pointer(self.images.get_pointer())
-        self.total_angle = 0
 
     def set_game_loop(self):
         self.map.setup()
@@ -172,7 +181,7 @@ class Game:
             self.screen.blit(self.images.get_background(), (0, 0))
             
             self.manage_events()
-            self.pointer.rotate(self.total_angle)
+            self.pointer.rotate()
             self.bubbles.get_bubble_group().draw(self.screen)
             self.pointer.draw(self.screen)
             pygame.display.update()
@@ -188,14 +197,14 @@ class Game:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.total_angle += ANGLE_SPEED
+                    self.pointer.increase_difference_of_angle()
 
                 elif event.key == pygame.K_RIGHT:
-                    self.total_angle -= ANGLE_SPEED
+                    self.pointer.decrease_difference_of_angle()
                 
             elif event.type ==pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    self.total_angle = 0
+                    self.pointer.stop_change_angle()
 
 
 
