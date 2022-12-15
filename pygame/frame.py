@@ -7,6 +7,10 @@ BUBBLE_WIDTH = 56
 BUBBLE_HEIGHT = 62
 SCREEN_WIDTH = 448
 SCREEN_HEIGHT = 720
+ANGLE_SPEED = 1.5
+MAX_RIGHT_ANGLE = 10
+MAX_LEFT_ANGLE = 170
+POINTER_POSITION = (SCREEN_WIDTH // 2, 624)
 
 class Image:
     def __init__(self):
@@ -33,7 +37,6 @@ class Image:
     def get_pointer(self):
         return self.pointer_image
 
-
 class Screen:
     def __init__(self) -> None:
         self.width = SCREEN_WIDTH
@@ -44,15 +47,28 @@ class Screen:
         pygame.display.set_caption (self.caption)
         return pygame.display.set_mode((self.width, self.height))
 
-
 class Pointer(pygame.sprite.Sprite):
-    def __init__(self, image, position):
+    def __init__(self, image):
         super().__init__()
+        self.original_image = image
         self.image = image
-        self.rect = image.get_rect(center=position)
+        self.rect = image.get_rect(center=POINTER_POSITION)
+        self.angle = 90
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+
+    def rotate(self, total_angle):
+        self.angle += total_angle
+        if self.angle <= MAX_RIGHT_ANGLE:
+            self.angle = MAX_RIGHT_ANGLE 
+
+        elif self.angle >= MAX_LEFT_ANGLE:
+            self.angle = MAX_LEFT_ANGLE 
+
+        self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
+        self.rect = self.image.get_rect(center=POINTER_POSITION)
+
 
 class Bubble(pygame.sprite.Sprite):
     def __init__(self, image, color, position):
@@ -132,17 +148,18 @@ class Game:
         self.screen = Screen().set_screen()
         self.images = Image()
         self.map = Map(self.images.get_bubbles())
-        self.pointer = Pointer(self.images.get_pointer(), (SCREEN_WIDTH // 2, 624))
-
+        self.pointer = Pointer(self.images.get_pointer())
+        self.total_angle = 0
     def set_game_loop(self):
         self.map.setup()
-        self.map.add_bubble_group()
-        self.screen.blit(self.images.get_background(), (0, 0))
         while self.running:
-
             self.set_frame_rate()
-            self.map.get_bubble_group().draw(self.screen)
+            self.map.add_bubble_group()
+            self.screen.blit(self.images.get_background(), (0, 0))
+            
             self.manage_events()
+            self.pointer.rotate(self.total_angle)
+            self.map.get_bubble_group().draw(self.screen)
             self.pointer.draw(self.screen)
             pygame.display.update()
         
@@ -152,8 +169,26 @@ class Game:
 
     def manage_events(self):
         for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.total_angle += ANGLE_SPEED
+
+                elif event.key == pygame.K_RIGHT:
+                    self.total_angle -= ANGLE_SPEED
+                
+            elif event.type ==pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    self.total_angle = 0
+
+
+
+
+
+
+
 
     
 def main():
