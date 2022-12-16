@@ -134,7 +134,7 @@ class Bubble(Game_Object):
             self.set_angle(180 - self.angle)
 
     def is_movement_end(self):
-        return self.rect.bottom < 0
+        return self.rect.top < 0
 
 class Map:
     def __init__(self) -> None:
@@ -142,13 +142,29 @@ class Map:
         self.colors = []
 
     def setup(self):
+        # self.map = [
+        #     # '/' 는 bubble이 들어갈 수 없는 곳
+        #     # '.' 은 빈칸
+        #     list("RRYYBBGG"),
+        #     list("RRYYBBG/"),
+        #     list("BBGGRRYY"),
+        #     list("BGGRRYY/"),
+        #     list("........"),
+        #     list("......./"),
+        #     list("........"),
+        #     list("......./"),
+        #     list("........"),
+        #     list("......./"),
+        #     list("........")
+        # ]
+
         self.map = [
             # '/' 는 bubble이 들어갈 수 없는 곳
             # '.' 은 빈칸
-            list("RRYYBBGG"),
-            list("RRYYBBG/"),
-            list("BBGGRRYY"),
-            list("BGGRRYY/"),
+            list("R......."),
+            list("......./"),
+            list("........"),
+            list("......./"),
             list("........"),
             list("......./"),
             list("........"),
@@ -262,8 +278,6 @@ class Game:
             self.draw_current_bubble()
             self.draw_next_bubble()
 
-            if self.current_bubble.is_movement_end():
-                self.delete_current_bubble()
 
             pygame.display.update()
         
@@ -357,9 +371,10 @@ class Game:
     def collision_manage(self):
         if self.fire:
             hit_bubble = pygame.sprite.spritecollideany(self.current_bubble, self.bubbles.get_bubble_group(), pygame.sprite.collide_mask)
-            if hit_bubble:
+            if hit_bubble or self.current_bubble.is_movement_end():
                 row_idx, col_idx = self.get_map_index(*self.current_bubble.rect.center)
                 self.place_bubble(row_idx, col_idx)
+            
                 
     def get_map_index(self, x, y):
         row_idx = y // CELL_SIZE
