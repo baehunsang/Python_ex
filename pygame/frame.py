@@ -381,8 +381,8 @@ class Game:
                 self.place_bubble(row_idx, col_idx)
                 self.remove_bubble_in(row_idx, col_idx, self.current_bubble.color)
                 self.delete_current_bubble()
-            
-                
+                self.delete_not_adj_bubbles()
+
     def get_map_index(self, x, y):
         row_idx = y // CELL_SIZE
         col_idx = x // CELL_SIZE
@@ -424,11 +424,11 @@ class Game:
                 difference_col = [1, -1, 0, 0, 1, 1]
                 for i in range(0, 6):
                     visit(map, row + difference_row[i], col+ difference_col[i], color)
-            
-            difference_row = [0, 0, 1, -1, -1, 1]
-            difference_col = [1, -1, 0, 0, -1, -1]
-            for i in range(0, 6):
-                visit(map, row + difference_row[i], col+ difference_col[i], color)
+            else:
+                difference_row = [0, 0, 1, -1, -1, 1]
+                difference_col = [1, -1, 0, 0, -1, -1]
+                for i in range(0, 6):
+                    visit(map, row + difference_row[i], col+ difference_col[i], color)
 
         visit(self.map.get_map(), row, col, color)
         return visited
@@ -442,6 +442,41 @@ class Game:
             deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) in visited]
             for bubble in deleting_bubbles:
                 self.bubbles.get_bubble_group().remove(bubble)
+
+    def delete_not_adj_bubbles(self):
+        visited = []
+        def visit(map, row, col):
+            if row < 0 or row >= MAP_ROW or col < 0 or col >= MAP_COL:
+                return
+            curr_color = map[row][col]
+
+            if (row, col) in visited:
+                return 
+
+            if curr_color in [".", "/"]:
+                return
+
+            visited.append((row, col))
+
+            if row % 2 ==1:
+                difference_row = [0, 0, 1, -1, 1, -1]
+                difference_col = [1, -1, 0, 0, 1, 1]
+                for i in range(0, 6):
+                    visit(map, row + difference_row[i], col+ difference_col[i])
+            else:
+                difference_row = [0, 0, 1, -1, -1, 1]
+                difference_col = [1, -1, 0, 0, -1, -1]
+                for i in range(0, 6):
+                    visit(map, row + difference_row[i], col+ difference_col[i])
+        
+        for i in range(MAP_COL):
+            visited.append(visit(self.map.get_map(), 0, i))
+
+        deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) not in visited]
+        for bubble in deleting_bubbles:
+                self.map.set_map(bubble.row_idx, bubble.col_idx, ".")
+                self.bubbles.get_bubble_group().remove(bubble)
+
 
 
 
