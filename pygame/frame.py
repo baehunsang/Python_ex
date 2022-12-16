@@ -415,20 +415,16 @@ class Game:
             visited.append((row, col))
 
             if row % 2 ==1:
-                visit(map, row, col+1, color)
-                visit(map, row, col-1, color)
-                visit(map, row+1, col, color)
-                visit(map, row-1, col, color)
-                visit(map, row+1, col+1, color)
-                visit(map, row-1, col+1, color)
+                difference_row = [0, 0, 1, -1, 1, -1]
+                difference_col = [1, -1, 0, 0, 1, 1]
+                for i in range(0, 6):
+                    visit(map, row + difference_row[i], col+ difference_col[i], color)
             
-            visit(map, row, col+1, color)
-            visit(map, row, col-1, color)
-            visit(map, row+1, col, color)
-            visit(map, row-1, col, color)
-            visit(map, row-1, col-1, color)
-            visit(map, row+1, col-1, color)
-            
+            difference_row = [0, 0, 1, -1, -1, 1]
+            difference_col = [1, -1, 0, 0, -1, -1]
+            for i in range(0, 6):
+                visit(map, row + difference_row[i], col+ difference_col[i], color)
+                
         visit(self.map.get_map(), row, col, color)
         return visited
 
