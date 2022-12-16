@@ -111,13 +111,17 @@ class Pointer(Game_Object):
         return self.angle
 
 class Bubble(Game_Object):
-    def __init__(self, image, color:str, position=(0,0)):
+    def __init__(self, image, color:str ,position=(0,0)):
         super().__init__(image)
         self.color = color
         self.rect = image.get_rect(center=position)
 
     def set_rect(self, position):
         self.rect = self.image.get_rect(center=position)
+
+    def set_map_position(self, row_idx, col_idx):
+        self.row_idx = row_idx
+        self.col_idx = col_idx
 
     def set_angle(self, angle):
         self.angle = angle
@@ -227,7 +231,6 @@ class Bubble_Group:
             return self.bubble_images[-1]
 
     def add_bubble_into_group(self, map):
-        self.bubble_group = pygame.sprite.Group()
         for row_idx, row in enumerate(map):
             for col_idx, sell in enumerate(row):
                 if sell in [".", "/"]:
@@ -238,7 +241,9 @@ class Bubble_Group:
     def add_bubble(self, row_idx, col_idx, sell):
         position = self.get_bubble_position(row_idx, col_idx)
         image = self.get_bubble_image(sell)
-        self.bubble_group.add(Bubble(image, sell, position))
+        bubble = Bubble(image, sell, position)
+        bubble.set_map_position(row_idx, col_idx)
+        self.bubble_group.add(bubble)
 
     def add_current_bubble(self, bubble):
         self.bubble_group.add(bubble)
@@ -265,7 +270,6 @@ class Game:
         self.bubbles.add_bubble_into_group(self.map.get_map())
         while self.running:
             self.df = self.set_frame_rate()
-            self.map.set_colors()
             self.manage_events()
 
             self.revolve_bubble()
@@ -396,6 +400,7 @@ class Game:
         self.map.set_map(row_idx, col_idx, self.current_bubble.color)
         position = self.bubbles.get_bubble_position(row_idx, col_idx)
         self.current_bubble.set_rect(position)
+        self.current_bubble.set_map_position(row_idx, col_idx)
         self.bubbles.add_current_bubble(self.current_bubble)
 
     def record_adj_bubble(self, row, col, color):
@@ -424,7 +429,7 @@ class Game:
             difference_col = [1, -1, 0, 0, -1, -1]
             for i in range(0, 6):
                 visit(map, row + difference_row[i], col+ difference_col[i], color)
-                
+
         visit(self.map.get_map(), row, col, color)
         return visited
 
@@ -433,7 +438,10 @@ class Game:
         if len(visited) >= 3:
             for row, col in visited:
                 self.map.set_map(row, col, ".")
-            self.bubbles.add_bubble_into_group(self.map.get_map())
+                self.map.set_colors( )
+            deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) in visited]
+            for bubble in deleting_bubbles:
+                self.bubbles.get_bubble_group().remove(bubble)
 
 
 
