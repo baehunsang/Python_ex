@@ -142,13 +142,29 @@ class Map:
         self.colors = []
 
     def setup(self):
+        self.map = [
+            # '/' 는 bubble이 들어갈 수 없는 곳
+            # '.' 은 빈칸
+            list("RRYYBBGG"),
+            list("RRYYBBG/"), 
+            list("BBGGRRYY"),
+            list("BGGRRYY/"),
+            list(".....Y.."),
+            list("......./"),
+            list("........"),
+            list("......./"),
+            list("........"),
+            list("......./"),
+            list("........")
+        ]
+
         # self.map = [
         #     # '/' 는 bubble이 들어갈 수 없는 곳
         #     # '.' 은 빈칸
-        #     list("RRYYBBGG"),
-        #     list("RRYYBBG/"),
-        #     list("BBGGRRYY"),
-        #     list("BGGRRYY/"),
+        #     list("R......."),
+        #     list("......./"),
+        #     list("........"),
+        #     list("......./"),
         #     list("........"),
         #     list("......./"),
         #     list("........"),
@@ -157,22 +173,6 @@ class Map:
         #     list("......./"),
         #     list("........")
         # ]
-
-        self.map = [
-            # '/' 는 bubble이 들어갈 수 없는 곳
-            # '.' 은 빈칸
-            list("R......."),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........")
-        ]
         
         self.set_colors()
 
@@ -227,6 +227,7 @@ class Bubble_Group:
             return self.bubble_images[-1]
 
     def add_bubble_into_group(self, map):
+        self.bubble_group = pygame.sprite.Group()
         for row_idx, row in enumerate(map):
             for col_idx, sell in enumerate(row):
                 if sell in [".", "/"]:
@@ -374,6 +375,8 @@ class Game:
             if hit_bubble or self.current_bubble.is_movement_end():
                 row_idx, col_idx = self.get_map_index(*self.current_bubble.rect.center)
                 self.place_bubble(row_idx, col_idx)
+                self.remove_bubble_in(row_idx, col_idx, self.current_bubble.color)
+                self.delete_current_bubble()
             
                 
     def get_map_index(self, x, y):
@@ -394,7 +397,47 @@ class Game:
         position = self.bubbles.get_bubble_position(row_idx, col_idx)
         self.current_bubble.set_rect(position)
         self.bubbles.add_current_bubble(self.current_bubble)
-        self.delete_current_bubble()
+
+    def record_adj_bubble(self, row, col, color):
+        visited = []
+        def visit(map, row, col, color):
+            if row < 0 or row >= MAP_ROW or col < 0 or col >= MAP_COL:
+                return
+            curr_color = map[row][col]
+            if curr_color != color:
+                return
+            if (row, col) in visited:
+                return 
+
+            if curr_color in [".", "/"]:
+                return
+
+            visited.append((row, col))
+
+            if row % 2 ==1:
+                visit(map, row, col+1, color)
+                visit(map, row, col-1, color)
+                visit(map, row+1, col, color)
+                visit(map, row-1, col, color)
+                visit(map, row+1, col+1, color)
+                visit(map, row-1, col+1, color)
+            
+            visit(map, row, col+1, color)
+            visit(map, row, col-1, color)
+            visit(map, row+1, col, color)
+            visit(map, row-1, col, color)
+            visit(map, row-1, col-1, color)
+            visit(map, row+1, col-1, color)
+            
+        visit(self.map.get_map(), row, col, color)
+        return visited
+
+    def remove_bubble_in(self, row_idx, col_idx, color):
+        visited = self.record_adj_bubble(row_idx, col_idx, color)
+        if len(visited) >= 3:
+            for row, col in visited:
+                self.map.set_map(row, col, ".")
+            self.bubbles.add_bubble_into_group(self.map.get_map())
 
 
 
