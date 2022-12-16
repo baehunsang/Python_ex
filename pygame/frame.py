@@ -333,7 +333,7 @@ class Game:
                     self.pointer.move_right_direction()
 
                 elif event.key == pygame.K_SPACE:
-                    if self.current_bubble and not self.fire:
+                    if not self.fire:
                         self.fire_bubble()
                 
             elif event.type ==pygame.KEYUP:
