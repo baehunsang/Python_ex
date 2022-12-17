@@ -438,7 +438,7 @@ class Game:
         if len(visited) >= 3:
             for row, col in visited:
                 self.map.set_map(row, col, ".")
-                self.map.set_colors( )
+            self.map.set_colors()
             deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) in visited]
             for bubble in deleting_bubbles:
                 self.bubbles.get_bubble_group().remove(bubble)
@@ -476,6 +476,7 @@ class Game:
         for bubble in deleting_bubbles:
                 self.map.set_map(bubble.row_idx, bubble.col_idx, ".")
                 self.bubbles.get_bubble_group().remove(bubble)
+        self.map.set_colors()
 
 
 
