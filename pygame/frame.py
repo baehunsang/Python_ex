@@ -470,7 +470,7 @@ class Game:
                     visit(map, row + difference_row[i], col+ difference_col[i])
         
         for i in range(MAP_COL):
-            visited.append(visit(self.map.get_map(), 0, i))
+            visit(self.map.get_map(), 0, i)
 
         deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) not in visited]
         for bubble in deleting_bubbles:
