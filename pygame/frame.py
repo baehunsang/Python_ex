@@ -12,6 +12,7 @@ SCREEN_HEIGHT = 720
 MAP_ROW = 11
 MAP_COL = 8
 
+MAX_FIRE_COUNT = 7
 ANGLE_SPEED = 0.1
 MAX_RIGHT_ANGLE = 10
 MAX_LEFT_ANGLE = 170
@@ -31,6 +32,7 @@ BLACK = -1
 class Image:
     def __init__(self):
         self.background = self.load_background_image()
+        self.wall = self.load_wall_image()
         self.bubble_images = [
             pygame.image.load(os.path.join(CURRENT_PATH, "red.png")).convert_alpha(),
             pygame.image.load(os.path.join(CURRENT_PATH, "yellow.png")).convert_alpha(),
@@ -41,8 +43,14 @@ class Image:
         ]
         self.pointer_image = pygame.image.load(os.path.join(CURRENT_PATH, "pointer.png"))
 
+    def load_wall_image(self):
+        return pygame.image.load(os.path.join(CURRENT_PATH, "wall.png"))
+
     def load_background_image(self):
         return pygame.image.load(os.path.join(CURRENT_PATH, "background.png"))
+
+    def get_wall(self):
+        return self.wall
 
     def get_background(self):
         return self.background
@@ -72,8 +80,8 @@ class Game_Object(pygame.sprite.Sprite):
         self.image = image
         self.rect = None
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+    def draw(self, screen, amplitude_x=0):
+        screen.blit(self.image, (self.rect.x + amplitude_x, self.rect.y))
 
 class Pointer(Game_Object):
     def __init__(self, image):
@@ -137,8 +145,11 @@ class Bubble(Game_Object):
         if self.rect.left < 0 or self.rect.right > SCREEN_WIDTH: 
             self.set_angle(180 - self.angle)
 
-    def is_movement_end(self):
-        return self.rect.top < 0
+    def is_movement_end(self, wall_visible):
+        return self.rect.top < wall_visible
+
+    def drop(self):
+        self.set_rect((self.rect.centerx, self.rect.centery + CELL_SIZE))
 
 class Map:
     def __init__(self) -> None:
@@ -202,9 +213,9 @@ class Bubble_Group:
         self.bubble_images = bubble_images
         self.bubble_group = pygame.sprite.Group()
     
-    def get_bubble_position(self, row_idx, col_idx):
+    def get_bubble_position(self, row_idx, col_idx, wall_visible=0):
         x_position = col_idx * CELL_SIZE + (BUBBLE_WIDTH // 2)
-        y_position = row_idx * CELL_SIZE + (BUBBLE_HEIGHT // 2)
+        y_position = (row_idx * CELL_SIZE + (BUBBLE_HEIGHT // 2)) + wall_visible
 
         if row_idx % 2 == 1:
             x_position += CELL_SIZE // 2
@@ -264,6 +275,8 @@ class Game:
         self.current_bubble = None
         self.next_bubble = None
         self.fire = False
+        self.curr_fire_count = MAX_FIRE_COUNT
+        self.wall_visible = 0
 
     def set_game_loop(self):
         self.map.setup()
@@ -298,7 +311,31 @@ class Game:
 
     def draw_screen(self):
         self.screen.blit(self.images.get_background(), (0, 0))
-        self.bubbles.get_bubble_group().draw(self.screen)
+        if self.curr_fire_count == 0:
+            self.drop_wall()
+        self.screen.blit(self.images.get_wall(), (0, self.wall_visible - SCREEN_HEIGHT))
+        self.draw_bubbles()
+
+    def drop_wall(self):
+        self.wall_visible += CELL_SIZE
+
+        for bubble in self.bubbles.get_bubble_group():
+            bubble.drop()
+        self.curr_fire_count = MAX_FIRE_COUNT
+
+    def draw_bubbles(self):
+        amplitude_x = self.set_amplitude()
+        
+        for bubble in self.bubbles.get_bubble_group():
+            bubble.draw(self.screen, amplitude_x)
+
+    def set_amplitude(self):
+        if self.curr_fire_count == 2:
+            return random.randint(-1, 1)
+        elif self.curr_fire_count == 1:
+            return random.randint(-4, 4)
+        else:
+            return 0
 
     def draw_pointer(self):
         self.pointer.rotate(self.df)
@@ -376,15 +413,16 @@ class Game:
     def collision_manage(self):
         if self.fire:
             hit_bubble = pygame.sprite.spritecollideany(self.current_bubble, self.bubbles.get_bubble_group(), pygame.sprite.collide_mask)
-            if hit_bubble or self.current_bubble.is_movement_end():
+            if hit_bubble or self.current_bubble.is_movement_end(self.wall_visible):
                 row_idx, col_idx = self.get_map_index(*self.current_bubble.rect.center)
                 self.place_bubble(row_idx, col_idx)
                 self.remove_bubble_in(row_idx, col_idx, self.current_bubble.color)
                 self.delete_current_bubble()
                 self.delete_not_adj_bubbles()
+                self.curr_fire_count -= 1
 
     def get_map_index(self, x, y):
-        row_idx = y // CELL_SIZE
+        row_idx = (y - self.wall_visible)// CELL_SIZE
         col_idx = x // CELL_SIZE
         if row_idx % 2 == 1:
             col_idx = (x - (CELL_SIZE // 2)) // CELL_SIZE
@@ -398,7 +436,7 @@ class Game:
 
     def place_bubble(self, row_idx, col_idx):
         self.map.set_map(row_idx, col_idx, self.current_bubble.color)
-        position = self.bubbles.get_bubble_position(row_idx, col_idx)
+        position = self.bubbles.get_bubble_position(row_idx, col_idx, self.wall_visible)
         self.current_bubble.set_rect(position)
         self.current_bubble.set_map_position(row_idx, col_idx)
         self.bubbles.add_current_bubble(self.current_bubble)
