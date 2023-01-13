@@ -157,30 +157,14 @@ class Map:
         self.colors = []
 
     def setup(self):
-        self.map = [
-            # '/' 는 bubble이 들어갈 수 없는 곳
-            # '.' 은 빈칸
-            list("RRYYBBGG"),
-            list("RRYYBBG/"), 
-            list("BBGGRRYY"),
-            list("BGGRRYY/"),
-            list(".....Y.."),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........"),
-            list("......./"),
-            list("........")
-        ]
-
         # self.map = [
         #     # '/' 는 bubble이 들어갈 수 없는 곳
         #     # '.' 은 빈칸
-        #     list("R......."),
-        #     list("......./"),
-        #     list("........"),
-        #     list("......./"),
-        #     list("........"),
+        #     list("RRYYBBGG"),
+        #     list("RRYYBBG/"), 
+        #     list("BBGGRRYY"),
+        #     list("BGGRRYY/"),
+        #     list(".....Y.."),
         #     list("......./"),
         #     list("........"),
         #     list("......./"),
@@ -188,6 +172,37 @@ class Map:
         #     list("......./"),
         #     list("........")
         # ]
+
+        # lv2
+        self.map = [
+            list("...YY..."),
+            list("...G.../"),
+            list("...R...."),
+            list("...B.../"),
+            list("...R...."),
+            list("...G.../"),
+            list("...P...."),
+            list("...P.../"),
+            list("........"),
+            list("......./"),
+            list("........")
+        ]    
+
+        # # lv3
+        # self.map = [
+        #     list("G......G"),
+        #     list("RGBYRGB/"),
+        #     list("Y......Y"),
+        #     list("BYRGBYR/"),
+        #     list("...R...."),
+        #     list("...G.../"),
+        #     list("...R...."),
+        #     list("......./"),
+        #     list("........"),
+        #     list("......./"),
+        #     list("........")
+        # ]
+
         
         self.set_colors()
 
