@@ -456,36 +456,6 @@ class Game:
         self.current_bubble.set_map_position(row_idx, col_idx)
         self.bubbles.add_current_bubble(self.current_bubble)
 
-    def record_adj_bubble(self, row, col, color):
-        visited = []
-        def visit(map, row, col, color):
-            if row < 0 or row >= MAP_ROW or col < 0 or col >= MAP_COL:
-                return
-            curr_color = map[row][col]
-            if curr_color != color:
-                return
-            if (row, col) in visited:
-                return 
-
-            if curr_color in [".", "/"]:
-                return
-
-            visited.append((row, col))
-
-            if row % 2 ==1:
-                difference_row = [0, 0, 1, -1, 1, -1]
-                difference_col = [1, -1, 0, 0, 1, 1]
-                for i in range(0, 6):
-                    visit(map, row + difference_row[i], col+ difference_col[i], color)
-            else:
-                difference_row = [0, 0, 1, -1, -1, 1]
-                difference_col = [1, -1, 0, 0, -1, -1]
-                for i in range(0, 6):
-                    visit(map, row + difference_row[i], col+ difference_col[i], color)
-
-        visit(self.map.get_map(), row, col, color)
-        return visited
-
     def remove_bubble_in(self, row_idx, col_idx, color):
         visited = self.record_adj_bubble(row_idx, col_idx, color)
         if len(visited) >= 3:
@@ -495,14 +465,30 @@ class Game:
             deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) in visited]
             for bubble in deleting_bubbles:
                 self.bubbles.get_bubble_group().remove(bubble)
-
+    
     def delete_not_adj_bubbles(self):
         visited = []
-        def visit(map, row, col):
+        for i in range(MAP_COL):
+            self.visit(visited, self.map.get_map(), 0, i)
+
+        deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) not in visited]
+        for bubble in deleting_bubbles:
+                self.map.set_map(bubble.row_idx, bubble.col_idx, ".")
+                self.bubbles.get_bubble_group().remove(bubble)
+        self.map.set_colors()
+
+    def record_adj_bubble(self, row, col, color):
+        visited = []
+        self.visit(visited, self.map.get_map(), row, col, color)
+        return visited
+    
+    def visit(self, visited, map, row, col, color=0):
             if row < 0 or row >= MAP_ROW or col < 0 or col >= MAP_COL:
                 return
             curr_color = map[row][col]
-
+            if color:
+                if curr_color != color:
+                    return
             if (row, col) in visited:
                 return 
 
@@ -515,23 +501,12 @@ class Game:
                 difference_row = [0, 0, 1, -1, 1, -1]
                 difference_col = [1, -1, 0, 0, 1, 1]
                 for i in range(0, 6):
-                    visit(map, row + difference_row[i], col+ difference_col[i])
+                    self.visit(visited, map, row + difference_row[i], col+ difference_col[i], color)
             else:
                 difference_row = [0, 0, 1, -1, -1, 1]
                 difference_col = [1, -1, 0, 0, -1, -1]
                 for i in range(0, 6):
-                    visit(map, row + difference_row[i], col+ difference_col[i])
-        
-        for i in range(MAP_COL):
-            visit(self.map.get_map(), 0, i)
-
-        deleting_bubbles = [bubble for bubble in self.bubbles.get_bubble_group() if (bubble.row_idx, bubble.col_idx) not in visited]
-        for bubble in deleting_bubbles:
-                self.map.set_map(bubble.row_idx, bubble.col_idx, ".")
-                self.bubbles.get_bubble_group().remove(bubble)
-        self.map.set_colors()
-
-
+                    self.visit(visited, map, row + difference_row[i], col+ difference_col[i], color)
 
 
 
